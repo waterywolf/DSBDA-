@@ -1,0 +1,13 @@
+hbase shell
+
+
+create 'student_hbase', 'info', 'marks'
+put 'student_hbase', '1', 'info:name', 'John'
+put 'student_hbase', '1', 'info:branch', 'CSE'
+put 'student_hbase', '1', 'marks:math', '85'
+put 'student_hbase', '1', 'marks:physics', '90'
+
+put 'student_hbase', '2', 'info:name', 'Alice'
+put 'student_hbase', '2', 'info:branch', 'ECE'
+put 'student_hbase', '2', 'marks:math', '78'
+put 'student_hbase', '2', 'marks:physics', '88'

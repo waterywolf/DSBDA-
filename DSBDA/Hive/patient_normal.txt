@@ -1,0 +1,58 @@
+hdfs dfs -mkdir -p /user/hive/patient_data
+hdfs dfs -put patients.csv /user/hive/patient_data/
+hdfs dfs -put doctors.csv /user/hive/patient_data/
+
+
+-- Drop tables if they exist
+DROP TABLE IF EXISTS patient;
+DROP TABLE IF EXISTS doctor;
+
+-- Create Patient table
+CREATE TABLE patient (
+    patient_id INT,
+    name STRING,
+    age INT,
+    disease STRING,
+    doctor_id INT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+-- Create Doctor table
+CREATE TABLE doctor (
+    doctor_id INT,
+    doctor_name STRING,
+    specialization STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+-- Load data into patient table
+-- Make sure the file is in HDFS: /user/hive/patient_data/patients.csv
+LOAD DATA INPATH '/user/hive/patient_data/patients.csv' INTO TABLE patient;
+
+-- Load data into doctor table
+-- Make sure the file is in HDFS: /user/hive/patient_data/doctors.csv
+LOAD DATA INPATH '/user/hive/patient_data/doctors.csv' INTO TABLE doctor;
+
+-- Insert additional patient record
+INSERT INTO TABLE patient VALUES (4, 'Alice White', 38, 'Hypertension', 101);
+
+-- Insert additional doctor record
+INSERT INTO TABLE doctor VALUES (104, 'Dr. Miller', 'Neurology');
+
+-- Join: Show patient with doctor details
+SELECT 
+    p.patient_id,
+    p.name AS patient_name,
+    p.disease,
+    d.doctor_name,
+    d.specialization
+FROM 
+    patient p
+JOIN 
+    doctor d
+ON 
+    p.doctor_id = d.doctor_id;

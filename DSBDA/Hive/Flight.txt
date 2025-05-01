@@ -1,0 +1,90 @@
+-- Create a new database
+CREATE DATABASE IF NOT EXISTS flight_db;
+
+-- Use the new database
+USE flight_db;
+
+-- Drop table if exists
+DROP TABLE IF EXISTS flight_info;
+
+-- Create a new table
+CREATE TABLE flight_info (
+    flight_id STRING,
+    airline STRING,
+    origin STRING,
+    destination STRING,
+    departure_date DATE,
+    departure_delay INT,
+    arrival_delay INT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+-- Alter table: add a new column
+ALTER TABLE flight_info ADD COLUMNS (aircraft_type STRING);
+CREATE EXTERNAL TABLE IF NOT EXISTS external_flight_data (
+    flight_id STRING,
+    airline STRING,
+    origin STRING,
+    destination STRING,
+    departure_date STRING,
+    departure_delay INT,
+    arrival_delay INT
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE
+LOCATION '/user/hive/warehouse/external_flights/';
+
+
+-- Load data into internal table (assume file is uploaded to HDFS path)
+LOAD DATA INPATH '/user/hive/warehouse/data/flight_info.csv' INTO TABLE flight_info;
+
+
+-- Insert new record into the table
+INSERT INTO TABLE flight_info VALUES 
+('F1234', 'IndiGo', 'DEL', 'BOM', '2008-06-21', 5, 10, 'A320');
+
+-- Create another table for airline info
+CREATE TABLE airline_info (
+    airline STRING,
+    country STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+-- Insert values into airline_info
+INSERT INTO TABLE airline_info VALUES
+('IndiGo', 'India'),
+('Air India', 'India'),
+('Lufthansa', 'Germany');
+
+
+-- Join: get flights with country info
+SELECT f.flight_id, f.airline, a.country, f.departure_date
+FROM flight_info f
+JOIN airline_info a
+ON f.airline = a.airline;
+
+
+-- Create index on departure_date to speed up search
+CREATE INDEX IF NOT EXISTS idx_departure_date
+ON TABLE flight_info (departure_date)
+AS 'COMPACT'
+WITH DEFERRED REBUILD;
+
+-- To rebuild the index
+ALTER INDEX idx_departure_date ON flight_info REBUILD;
+
+
+-- Query to calculate average delay per day in 2008
+SELECT departure_date, AVG(departure_delay) AS avg_dep_delay
+FROM flight_info
+WHERE YEAR(departure_date) = 2008
+GROUP BY departure_date
+ORDER BY departure_date;
+F1234,IndiGo,DEL,BOM,2008-06-21,5,10,A320
+F1235,Air India,BLR,MUM,2008-06-21,15,20,B737
+...

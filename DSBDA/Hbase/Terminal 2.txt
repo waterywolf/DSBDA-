@@ -1,0 +1,19 @@
+DROP TABLE IF EXISTS student_hive;
+
+CREATE EXTERNAL TABLE student_hive (
+    key STRING,
+    name STRING,
+    branch STRING,
+    math INT,
+    physics INT
+)
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH SERDEPROPERTIES (
+    "hbase.columns.mapping" = ":key,info:name,info:branch,marks:math,marks:physics"
+)
+TBLPROPERTIES ("hbase.table.name" = "student_hbase");
+
+
+SELECT * FROM student_hive;
+1   John   CSE   85   90
+2   Alice  ECE   78   88

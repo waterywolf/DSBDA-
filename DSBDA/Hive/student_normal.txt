@@ -1,0 +1,40 @@
+hdfs dfs -mkdir -p /user/hive/students
+hdfs dfs -put students.csv /user/hive/students/
+
+
+-- Drop tables if they exist
+DROP TABLE IF EXISTS student;
+DROP TABLE IF EXISTS student_ext;
+
+-- Create managed table
+CREATE TABLE student (
+    student_id INT,
+    name STRING,
+    age INT,
+    department STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+-- Alter table: Add a new column
+ALTER TABLE student ADD COLUMNS (email STRING);
+
+-- Load data into the managed table
+-- Make sure the file is placed at /user/hive/students/students.csv in HDFS
+LOAD DATA INPATH '/user/hive/students/students.csv' INTO TABLE student;
+
+-- Create external table pointing to same data
+CREATE EXTERNAL TABLE student_ext (
+    student_id INT,
+    name STRING,
+    age INT,
+    department STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE
+LOCATION '/user/hive/students/';
+
+-- Sample query: Get Computer Science students older than 20
+SELECT * FROM student WHERE department = 'Computer Science' AND age > 20;
